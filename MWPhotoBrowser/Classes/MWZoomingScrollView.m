@@ -187,7 +187,12 @@
     id <MWPhoto> photoWithProgress = [dict objectForKey:@"photo"];
     if (photoWithProgress == self.photo) {
         float progress = [[dict valueForKey:@"progress"] floatValue];
-        _loadingIndicator.progress = MAX(MIN(1, progress), 0);
+        if (progress > 0) {
+			_loadingIndicator.progress = MAX(MIN(1, progress), 0);
+		} else {
+			_loadingIndicator.progress = 0.75;
+			_loadingIndicator.indeterminate = -1;
+		}
     }
 }
 
@@ -199,7 +204,7 @@
     self.zoomScale = 0;
     self.minimumZoomScale = 0;
     self.maximumZoomScale = 0;
-    _loadingIndicator.progress = 0;
+//    _loadingIndicator.progress = 0;
     _loadingIndicator.hidden = NO;
     [self hideImageFailure];
 }

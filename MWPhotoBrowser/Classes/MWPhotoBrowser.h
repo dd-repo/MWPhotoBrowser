@@ -53,6 +53,9 @@
 @property (nonatomic) NSUInteger delayToHideElements;
 @property (nonatomic, readonly) NSUInteger currentIndex;
 
+@property (nonatomic, assign) BOOL useStatusBarDefaultStyle;
+@property (nonatomic, assign) BOOL autoHideControlsOnSwipe;
+
 // Init
 - (id)initWithPhotos:(NSArray *)photosArray  __attribute__((deprecated("Use initWithDelegate: instead"))); // Depreciated
 - (id)initWithDelegate:(id <MWPhotoBrowserDelegate>)delegate;
