@@ -370,7 +370,7 @@
             [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackTranslucent animated:animated];
 #pragma clang diagnostic push
         } else {
-            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault animated:animated];
+            [[UIApplication sharedApplication] setStatusBarStyle:(self.useStatusBarDefaultStyle ? UIStatusBarStyleDefault : UIStatusBarStyleLightContent) animated:animated];
         }
     }
     
@@ -1053,7 +1053,9 @@
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
 	// Hide controls when dragging begins
-	[self setControlsHidden:YES animated:YES permanent:NO];
+	if (self.autoHideControlsOnSwipe) {
+		[self setControlsHidden:YES animated:YES permanent:NO];
+	}
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
