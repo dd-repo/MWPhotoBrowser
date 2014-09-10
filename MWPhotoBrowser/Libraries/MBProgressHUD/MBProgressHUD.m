@@ -687,9 +687,9 @@ static const CGFloat kDetailsLabelFontSize = 12.f;
 	} else if ([keyPath isEqualToString:@"detailsLabelFont"]) {
 		detailsLabel.font = self.detailsLabelFont;
 	} else if ([keyPath isEqualToString:@"progress"]) {
-//		if ([indicator respondsToSelector:@selector(setProgress:)]) {
+		if ([indicator respondsToSelector:@selector(setProgress:)]) {
 //			[(id)indicator setProgress:progress];
-//		}
+		}
 		return;
 	}
 	[self setNeedsLayout];
