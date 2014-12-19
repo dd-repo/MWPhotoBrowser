@@ -1068,17 +1068,18 @@
         } else {
             NSString *photosText;
             if (numberOfPhotos == 1) {
-                photosText = AMLocalizedString(@"photo", @"Used in the context: '1 photo'");
+                self.title = AMLocalizedString(@"onePhoto", nil);
             } else {
-                photosText = AMLocalizedString(@"photos", @"Used in the context: '3 photos'");
+                photosText = AMLocalizedString(@"multiplePhotos", nil);
+                NSString *photosCount = [NSString stringWithFormat:@"%lu",(unsigned long)numberOfPhotos];
+                self.title = [photosText stringByReplacingOccurrencesOfString:@"[X]" withString:photosCount];
             }
-            self.title = [NSString stringWithFormat:@"%lu %@", (unsigned long)numberOfPhotos, photosText];
         }
     } else if (numberOfPhotos > 1) {
         if ([_delegate respondsToSelector:@selector(photoBrowser:titleForPhotoAtIndex:)]) {
             self.title = [_delegate photoBrowser:self titleForPhotoAtIndex:_currentPageIndex];
         } else {
-            self.title = [NSString stringWithFormat:@"%lu %@ %lu", (unsigned long)(_currentPageIndex+1), AMLocalizedString(@"of", @"Used in the context: 'Showing 1 of 3 items'"), (unsigned long)numberOfPhotos];
+            self.title = [NSString stringWithFormat:@"%lu %@ %lu", (unsigned long)(_currentPageIndex+1), AMLocalizedString(@"of", nil), (unsigned long)numberOfPhotos];
         }
 	} else {
 		self.title = nil;
