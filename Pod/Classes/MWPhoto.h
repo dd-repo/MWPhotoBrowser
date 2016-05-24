@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <Photos/Photos.h>
+#import <UIKit/UIKit.h>
 #import "MWPhotoProtocol.h"
 
 // This class models a photo/image and it's caption
@@ -16,21 +16,14 @@
 // conforms to MWPhotoProtocol
 @interface MWPhoto : NSObject <MWPhoto>
 
-@property (nonatomic, strong) NSString *caption;
 @property (nonatomic, strong) NSURL *videoURL;
 @property (nonatomic) BOOL emptyImage;
 @property (nonatomic) BOOL isVideo;
+@property (nonatomic) BOOL isGridMode;
+@property (nonatomic) BOOL isFromFolderLink;
+@property (strong, nonatomic) MEGANode *node;
 
-+ (MWPhoto *)photoWithImage:(UIImage *)image;
-+ (MWPhoto *)photoWithURL:(NSURL *)url;
-+ (MWPhoto *)photoWithAsset:(PHAsset *)asset targetSize:(CGSize)targetSize;
-+ (MWPhoto *)videoWithURL:(NSURL *)url; // Initialise video with no poster image
-
-- (id)init;
-- (id)initWithImage:(UIImage *)image;
-- (id)initWithURL:(NSURL *)url;
-- (id)initWithAsset:(PHAsset *)asset targetSize:(CGSize)targetSize;
-- (id)initWithVideoURL:(NSURL *)url;
+- (instancetype)initWithNode:(MEGANode *)node;
 
 @end
 

@@ -6,7 +6,6 @@
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
-#import "MWCommon.h"
 #import "MWCaptionView.h"
 #import "MWPhoto.h"
 
@@ -14,18 +13,20 @@ static const CGFloat labelPadding = 10;
 
 // Private
 @interface MWCaptionView () {
-    id <MWPhoto> _photo;
     UILabel *_label;    
 }
+
+@property (nonatomic, copy) NSString *caption;
+
 @end
 
 @implementation MWCaptionView
 
-- (id)initWithPhoto:(id<MWPhoto>)photo {
+- (id)initWithCaption:(NSString *)caption {
     self = [super initWithFrame:CGRectMake(0, 0, 320, 44)]; // Random initial frame
     if (self) {
         self.userInteractionEnabled = NO;
-        _photo = photo;
+        _caption = caption;
         self.barStyle = UIBarStyleBlackTranslucent;
         self.tintColor = nil;
         self.barTintColor = nil;
@@ -60,9 +61,7 @@ static const CGFloat labelPadding = 10;
     _label.numberOfLines = 0;
     _label.textColor = [UIColor whiteColor];
     _label.font = [UIFont systemFontOfSize:17];
-    if ([_photo respondsToSelector:@selector(caption)]) {
-        _label.text = [_photo caption] ? [_photo caption] : @" ";
-    }
+    _label.text = _caption ? _caption : @" ";
     [self addSubview:_label];
 }
 
