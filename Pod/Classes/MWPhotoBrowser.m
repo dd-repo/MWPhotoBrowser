@@ -12,6 +12,7 @@
 #import "UIImage+MWPhotoBrowser.h"
 #import "SaveToCameraRollActivity.h"
 #import "MEGAActivityItemProvider.h"
+#import "SVProgressHUD.h"
 
 #define PADDING                  10
 
@@ -78,6 +79,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     _visiblePages = [[NSMutableSet alloc] init];
     _recycledPages = [[NSMutableSet alloc] init];
     _photos = [[NSMutableArray alloc] init];
+    _fixedPhotosArray = [[NSMutableArray alloc] init];
     _thumbPhotos = [[NSMutableArray alloc] init];
     _currentGridContentOffset = CGPointMake(0, CGFLOAT_MAX);
     _didSavePreviousStateOfNavBar = NO;
@@ -137,9 +139,6 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     
     // Validate grid settings
     if (_startOnGrid) _enableGrid = YES;
-    if (_enableGrid) {
-        _enableGrid = [_delegate respondsToSelector:@selector(photoBrowser:thumbPhotoAtIndex:)];
-    }
     if (!_enableGrid) _startOnGrid = NO;
 	
 	// View
@@ -176,7 +175,12 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
         _nextButton = [[UIBarButtonItem alloc] initWithImage:nextButtonImage style:UIBarButtonItemStylePlain target:self action:@selector(gotoNextPage)];
     }
     if (self.displayActionButton) {
-        _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+        MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
+        if (level == MEGANodeAccessLevelAccessUnknown) {
+            _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"offlineIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(downloadButtonPressed:)];
+        } else {
+            _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+        }
     }
     
     // Update
@@ -217,6 +221,22 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
         [_doneButton setTitleTextAttributes:[NSDictionary dictionary] forState:UIControlStateHighlighted];
         self.navigationItem.rightBarButtonItem = _doneButton;
     } else {
+        if (self.displayMode == DisplayModeRubbishBin) {
+            _deleteButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"remove"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteButtonPressed:)];
+        } else {
+            MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
+            if (level >= MEGAShareTypeAccessFull) {
+                _deleteButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"rubbishBin"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteButtonPressed:)];
+            }
+        }
+        // Set appearance
+        [_deleteButton setBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+        [_deleteButton setBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsLandscapePhone];
+        [_deleteButton setBackgroundImage:nil forState:UIControlStateHighlighted barMetrics:UIBarMetricsDefault];
+        [_deleteButton setBackgroundImage:nil forState:UIControlStateHighlighted barMetrics:UIBarMetricsLandscapePhone];
+        [_deleteButton setTitleTextAttributes:[NSDictionary dictionary] forState:UIControlStateNormal];
+        [_deleteButton setTitleTextAttributes:[NSDictionary dictionary] forState:UIControlStateHighlighted];
+        self.navigationItem.rightBarButtonItem = _deleteButton;
         // We're not first so show back button
         UIViewController *previousViewController = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
         NSString *backButtonTitle = previousViewController.navigationItem.backBarButtonItem ? previousViewController.navigationItem.backBarButtonItem.title : previousViewController.title;
@@ -643,7 +663,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 }
 
 - (id<MWPhoto>)photoAtIndex:(NSUInteger)index {
-    id <MWPhoto> photo = nil;
+    MWPhoto *photo = nil;
     if (index < _photos.count) {
         if ([_photos objectAtIndex:index] == [NSNull null]) {
             if ([_delegate respondsToSelector:@selector(photoBrowser:photoAtIndex:)]) {
@@ -656,21 +676,25 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
             photo = [_photos objectAtIndex:index];
         }
     }
+    photo.isGridMode = NO;
     return photo;
 }
 
 - (id<MWPhoto>)thumbPhotoAtIndex:(NSUInteger)index {
-    id <MWPhoto> photo = nil;
+    MWPhoto *photo = nil;
     if (index < _thumbPhotos.count) {
         if ([_thumbPhotos objectAtIndex:index] == [NSNull null]) {
             if ([_delegate respondsToSelector:@selector(photoBrowser:thumbPhotoAtIndex:)]) {
                 photo = [_delegate photoBrowser:self thumbPhotoAtIndex:index];
+            } else {
+                photo = [_fixedPhotosArray objectAtIndex:index];
             }
             if (photo) [_thumbPhotos replaceObjectAtIndex:index withObject:photo];
         } else {
             photo = [_thumbPhotos objectAtIndex:index];
         }
     }
+    photo.isGridMode = YES;
     return photo;
 }
 
@@ -1352,6 +1376,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
         [_gridController didMoveToParentViewController:self];
     }];
     
+    self.navigationItem.rightBarButtonItem = nil;
 }
 
 - (void)hideGrid {
@@ -1389,7 +1414,8 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
         [tmpGridController removeFromParentViewController];
         [self setControlsHidden:NO animated:YES permanent:NO]; // retrigger timer
     }];
-
+    
+    self.navigationItem.rightBarButtonItem = _deleteButton;
 }
 
 #pragma mark - Control Hiding / Showing
@@ -1574,6 +1600,40 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     }
 }
 
+- (void)deleteButtonPressed:(id)sender {
+    NSString *title = nil;
+    if (self.displayMode == DisplayModeRubbishBin) {
+        title = AMLocalizedString(@"removeFileToRubbishBinMessage", nil);
+    } else {
+        title = AMLocalizedString(@"moveFileToRubbishBinMessage", nil);
+    }
+    
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:title
+                                                             delegate:self
+                                                    cancelButtonTitle:AMLocalizedString(@"cancel", nil)
+                                               destructiveButtonTitle:nil
+                                                    otherButtonTitles:AMLocalizedString(@"ok", nil), nil];
+    
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        [actionSheet showFromBarButtonItem:_deleteButton animated:YES];
+    } else {
+        if (([[[UIDevice currentDevice] systemVersion] compare:@"8.0" options:NSNumericSearch] == NSOrderedAscending)) {
+            UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
+            if ([window.subviews containsObject:self.view]) {
+                [actionSheet showInView:self.view];
+            } else {
+                [actionSheet showInView:window];
+            }
+        } else {
+            [actionSheet showFromTabBar:self.tabBarController.tabBar];
+        }
+    }
+}
+
+- (void)downloadButtonPressed:(id)sender {
+    [[MEGASdkManager sharedMEGASdkFolder] startDownloadNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node] localPath:NSTemporaryDirectory() delegate:self];
+}
+
 #pragma mark - Actions
 
 - (void)actionButtonPressed:(id)sender {
@@ -1595,7 +1655,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
             [activitiesMutableArray addObject:saveToCameraRollActivity];
             self.activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[activityItemProvider] applicationActivities:activitiesMutableArray];
             
-            [self.activityViewController setExcludedActivityTypes:@[UIActivityTypeSaveToCameraRoll]];
+            [self.activityViewController setExcludedActivityTypes:@[UIActivityTypeSaveToCameraRoll, UIActivityTypeCopyToPasteboard]];
             // iOS 8 - Set the Anchor Point for the popover
             if ([self.activityViewController respondsToSelector:@selector(popoverPresentationController)]) {
                 self.activityViewController.popoverPresentationController.barButtonItem = _actionButton;
@@ -1609,6 +1669,63 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
     }
     
+}
+
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+    if (!error) {
+        NSString *imagePath = CFBridgingRelease(contextInfo);
+        [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
+        [SVProgressHUD showImage:[UIImage imageNamed:@"hudSuccess"] status:AMLocalizedString(@"savedInCameraRoll", nil)];
+    }
+}
+
+#pragma mark - UIActionSheetDelegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) {
+        MWPhoto *photo = [_fixedPhotosArray objectAtIndex:_currentPageIndex];
+        if (self.displayMode == DisplayModeRubbishBin) {
+            [[MEGASdkManager sharedMEGASdk] removeNode:photo.node delegate:self];
+        } else {
+            [[MEGASdkManager sharedMEGASdk] moveNode:photo.node newParent:[[MEGASdkManager sharedMEGASdk] rubbishNode] delegate:self];
+        }
+    }
+}
+
+#pragma mark - MEGARequestDelegate
+
+- (void)onRequestFinish:(MEGASdk *)api request:(MEGARequest *)request error:(MEGAError *)error {
+    if (error.type) {
+        return;
+    }
+    
+    switch (request.type) {
+        case MEGARequestTypeMove:
+        case MEGARequestTypeRemove:
+            [_fixedPhotosArray removeObjectAtIndex:_currentPageIndex];
+            if (_fixedPhotosArray.count == 0) {
+                [self.navigationController popViewControllerAnimated:YES];
+            } else {
+                [self reloadData];
+            }
+            break;
+            
+        default:
+            break;
+    }
+}
+
+#pragma mark - MEGATransferDelegate
+
+- (void)onTransferStart:(MEGASdk *)api transfer:(MEGATransfer *)transfer {
+    [SVProgressHUD show];
+}
+
+- (void)onTransferFinish:(MEGASdk *)api transfer:(MEGATransfer *)transfer error:(MEGAError *)error {
+    UIImage *image = [UIImage imageWithContentsOfFile:transfer.path];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^(void){
+        UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), (void*)CFBridgingRetain(transfer.path));
+    });
 }
 
 @end

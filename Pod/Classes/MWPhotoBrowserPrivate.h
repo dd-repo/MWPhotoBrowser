@@ -18,7 +18,7 @@
     NSUInteger _photoCount;
     NSMutableArray *_photos;
     NSMutableArray *_thumbPhotos;
-	NSArray *_fixedPhotosArray; // Provided via init
+	NSMutableArray *_fixedPhotosArray; // Provided via init
 	
 	// Views
 	UIScrollView *_pagingScrollView;
@@ -33,7 +33,7 @@
 	// Navigation & controls
 	UIToolbar *_toolbar;
 	NSTimer *_controlVisibilityTimer;
-	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton, *_doneButton;
+	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton, *_doneButton, *_deleteButton;
     
     // Grid
     MWGridViewController *_gridController;
