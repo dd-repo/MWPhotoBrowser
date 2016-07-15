@@ -1603,16 +1603,16 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 - (void)deleteButtonPressed:(id)sender {
     NSString *title = nil;
     if (self.displayMode == DisplayModeRubbishBin) {
-        title = AMLocalizedString(@"removeFileToRubbishBinMessage", nil);
+        title = NSLocalizedString(@"removeFileToRubbishBinMessage", nil);
     } else {
-        title = AMLocalizedString(@"moveFileToRubbishBinMessage", nil);
+        title = NSLocalizedString(@"moveFileToRubbishBinMessage", nil);
     }
     
     UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:title
                                                              delegate:self
-                                                    cancelButtonTitle:AMLocalizedString(@"cancel", nil)
+                                                    cancelButtonTitle:NSLocalizedString(@"cancel", nil)
                                                destructiveButtonTitle:nil
-                                                    otherButtonTitles:AMLocalizedString(@"ok", nil), nil];
+                                                    otherButtonTitles:NSLocalizedString(@"ok", nil), nil];
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         [actionSheet showFromBarButtonItem:_deleteButton animated:YES];
@@ -1675,7 +1675,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     if (!error) {
         NSString *imagePath = CFBridgingRelease(contextInfo);
         [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
-        [SVProgressHUD showImage:[UIImage imageNamed:@"hudSuccess"] status:AMLocalizedString(@"savedInCameraRoll", nil)];
+        [SVProgressHUD showImage:[UIImage imageNamed:@"hudSuccess"] status:NSLocalizedString(@"savedInCameraRoll", nil)];
     }
 }
 
