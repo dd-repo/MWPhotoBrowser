@@ -1603,9 +1603,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 - (void)deleteButtonPressed:(id)sender {
     NSString *title = nil;
     if (self.displayMode == DisplayModeRubbishBin) {
-        title = NSLocalizedString(@"removeFileToRubbishBinMessage", nil);
+        title = NSLocalizedString(@"removeFileToRubbishBinMessage", @"Alert message shown on the Rubbish Bin when you want to remove '1 file'");
     } else {
-        title = NSLocalizedString(@"moveFileToRubbishBinMessage", nil);
+        title = NSLocalizedString(@"moveFileToRubbishBinMessage", @"Alert message to confirm if the user wants to move to the Rubbish Bin '1 file'");
     }
     
     UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:title
@@ -1675,7 +1675,6 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     if (!error) {
         NSString *imagePath = CFBridgingRelease(contextInfo);
         [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
-        [SVProgressHUD showImage:[UIImage imageNamed:@"hudSuccess"] status:NSLocalizedString(@"savedInCameraRoll", nil)];
     }
 }
 
@@ -1718,14 +1717,16 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 #pragma mark - MEGATransferDelegate
 
 - (void)onTransferStart:(MEGASdk *)api transfer:(MEGATransfer *)transfer {
-    [SVProgressHUD show];
+    [SVProgressHUD showImage:[UIImage imageNamed:@"hudDownload"] status:NSLocalizedString(@"downloadStarted", @"Message shown when a download starts")];
 }
 
 - (void)onTransferFinish:(MEGASdk *)api transfer:(MEGATransfer *)transfer error:(MEGAError *)error {
-    UIImage *image = [UIImage imageWithContentsOfFile:transfer.path];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^(void){
-        UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), (void*)CFBridgingRetain(transfer.path));
-    });
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IsSavePhotoToGalleryEnabled"]) {
+        UIImage *image = [UIImage imageWithContentsOfFile:transfer.path];
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^(void){
+            UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), (void*)CFBridgingRetain(transfer.path));
+        });
+    }
 }
 
 @end
