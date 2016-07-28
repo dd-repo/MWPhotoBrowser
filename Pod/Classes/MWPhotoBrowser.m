@@ -7,6 +7,7 @@
 //
 
 #import <QuartzCore/QuartzCore.h>
+#import <Photos/photos.h>
 #import "MWPhotoBrowser.h"
 #import "MWPhotoBrowserPrivate.h"
 #import "UIImage+MWPhotoBrowser.h"
@@ -177,7 +178,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     if (self.displayActionButton) {
         MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
         if (level == MEGANodeAccessLevelAccessUnknown) {
-            _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"offlineIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(downloadButtonPressed:)];
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] > 9.0) {
+                _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"offlineIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(downloadButtonPressed:)];
+            }
         } else {
             _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
         }
@@ -1671,13 +1674,6 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     
 }
 
-- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
-    if (!error) {
-        NSString *imagePath = CFBridgingRelease(contextInfo);
-        [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
-    }
-}
-
 #pragma mark - UIActionSheetDelegate
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -1722,10 +1718,18 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
 - (void)onTransferFinish:(MEGASdk *)api transfer:(MEGATransfer *)transfer error:(MEGAError *)error {
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IsSavePhotoToGalleryEnabled"]) {
-        UIImage *image = [UIImage imageWithContentsOfFile:transfer.path];
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^(void){
-            UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), (void*)CFBridgingRetain(transfer.path));
-        });
+        NSURL *imageURL = [NSURL fileURLWithPath:transfer.path];
+        
+        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+            PHAssetCreationRequest *assetCreationRequest = [PHAssetCreationRequest creationRequestForAsset];
+            [assetCreationRequest addResourceWithType:PHAssetResourceTypePhoto fileURL:imageURL options:nil];
+            
+        } completionHandler:^(BOOL success, NSError * _Nullable nserror) {
+            [[NSFileManager defaultManager] removeItemAtPath:transfer.path error:nil];
+            if (nserror) {
+                MEGALogError(@"Add asset to camera roll: %@ (Domain: %@ - Code:%ld)", nserror.localizedDescription, nserror.domain, nserror.code);
+            }
+        }];
     }
 }
 
