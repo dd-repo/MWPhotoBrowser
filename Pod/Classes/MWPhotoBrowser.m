@@ -7,12 +7,15 @@
 //
 
 #import <QuartzCore/QuartzCore.h>
-#import <Photos/photos.h>
+
 #import "MWPhotoBrowser.h"
 #import "MWPhotoBrowserPrivate.h"
 #import "UIImage+MWPhotoBrowser.h"
+
 #import "SaveToCameraRollActivity.h"
 #import "MEGAActivityItemProvider.h"
+#import "NSFileManager+MNZCategory.h"
+
 #import "SVProgressHUD.h"
 
 #define PADDING                  10
@@ -1634,7 +1637,11 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 }
 
 - (void)downloadButtonPressed:(id)sender {
-    [[MEGASdkManager sharedMEGASdkFolder] startDownloadNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node] localPath:NSTemporaryDirectory() delegate:self];
+    NSString *downloadsDirectory = [[NSFileManager defaultManager] downloadsDirectory];
+    MEGANode *node = (MEGANode *)[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node];
+    NSString *offlineNameString = [[MEGASdkManager sharedMEGASdkFolder] escapeFsIncompatible:node.name];
+    NSString *localPath = [downloadsDirectory stringByAppendingPathComponent:offlineNameString];
+    [[MEGASdkManager sharedMEGASdkFolder] startDownloadNode:node localPath:localPath appData:@"SaveInPhotosApp" delegate:self];
 }
 
 #pragma mark - Actions
@@ -1714,23 +1721,6 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
 - (void)onTransferStart:(MEGASdk *)api transfer:(MEGATransfer *)transfer {
     [SVProgressHUD showImage:[UIImage imageNamed:@"hudDownload"] status:NSLocalizedString(@"downloadStarted", @"Message shown when a download starts")];
-}
-
-- (void)onTransferFinish:(MEGASdk *)api transfer:(MEGATransfer *)transfer error:(MEGAError *)error {
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:@"IsSavePhotoToGalleryEnabled"]) {
-        NSURL *imageURL = [NSURL fileURLWithPath:transfer.path];
-        
-        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-            PHAssetCreationRequest *assetCreationRequest = [PHAssetCreationRequest creationRequestForAsset];
-            [assetCreationRequest addResourceWithType:PHAssetResourceTypePhoto fileURL:imageURL options:nil];
-            
-        } completionHandler:^(BOOL success, NSError * _Nullable nserror) {
-            [[NSFileManager defaultManager] removeItemAtPath:transfer.path error:nil];
-            if (nserror) {
-                MEGALogError(@"Add asset to camera roll: %@ (Domain: %@ - Code:%ld)", nserror.localizedDescription, nserror.domain, nserror.code);
-            }
-        }];
-    }
 }
 
 @end
