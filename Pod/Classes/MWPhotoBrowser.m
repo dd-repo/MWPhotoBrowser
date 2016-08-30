@@ -1638,10 +1638,11 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
 - (void)downloadButtonPressed:(id)sender {
     NSString *downloadsDirectory = [[NSFileManager defaultManager] downloadsDirectory];
+    downloadsDirectory = [downloadsDirectory stringByReplacingOccurrencesOfString:[NSHomeDirectory() stringByAppendingString:@"/"] withString:@""];
     MEGANode *node = (MEGANode *)[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node];
     NSString *offlineNameString = [[MEGASdkManager sharedMEGASdkFolder] escapeFsIncompatible:node.name];
     NSString *localPath = [downloadsDirectory stringByAppendingPathComponent:offlineNameString];
-    [[MEGASdkManager sharedMEGASdkFolder] startDownloadNode:node localPath:localPath appData:@"SaveInPhotosApp" delegate:self];
+    [[MEGASdkManager sharedMEGASdk] startDownloadNode:[[MEGASdkManager sharedMEGASdkFolder] authorizeNode:node] localPath:localPath appData:@"SaveInPhotosApp" delegate:self];
 }
 
 #pragma mark - Actions
