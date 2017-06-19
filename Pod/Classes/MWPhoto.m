@@ -61,7 +61,7 @@
 
 - (UIImage *)underlyingImage {
     if (self.isGridMode) {
-        self.imagePath = [Helper pathForNode:self.node searchPath:NSCachesDirectory directory:@"thumbnailsV3"];
+        self.imagePath = [Helper pathForNode:self.node inSharedSandboxCacheDirectory:@"thumbnailsV3"];
         if(![[NSFileManager defaultManager] fileExistsAtPath:self.imagePath]) {
             return nil;
         }
