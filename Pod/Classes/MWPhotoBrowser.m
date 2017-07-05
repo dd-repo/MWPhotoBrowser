@@ -140,7 +140,8 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
-    
+    // Customize back button
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"backArrow"] style:UIBarButtonItemStylePlain target:self action:@selector(popViewController)];
     // Validate grid settings
     if (_startOnGrid) _enableGrid = YES;
     if (!_enableGrid) _startOnGrid = NO;
@@ -349,6 +350,10 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     } else {
         return NO;
     }
+}
+
+- (void)popViewController {
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 #pragma mark - Appearance
