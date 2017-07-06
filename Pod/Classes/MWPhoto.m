@@ -11,8 +11,9 @@
 #import "Helper.h"
 #import "MEGASdkManager.h"
 #import "MEGAStore.h"
+#import "MEGAGetPreviewRequestDelegate.h"
 
-@interface MWPhoto () <MEGATransferDelegate, MEGARequestDelegate> {
+@interface MWPhoto () <MEGATransferDelegate> {
     BOOL _loadingInProgress;
 }
 
@@ -108,9 +109,16 @@
     } else {
         if([self.node hasPreview]) {
             if (self.isFromFolderLink) {
-                [[MEGASdkManager sharedMEGASdkFolder] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:self];
+                MEGAGetPreviewRequestDelegate *getPreviewRequestDelegate = [[MEGAGetPreviewRequestDelegate alloc] initWithCompletion:^(MEGARequest *request) {
+                    [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
+                }];
+                [[MEGASdkManager sharedMEGASdk] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:getPreviewRequestDelegate];
             } else {
-                [[MEGASdkManager sharedMEGASdk] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:self];
+                MEGAGetPreviewRequestDelegate *getPreviewRequestDelegate = [[MEGAGetPreviewRequestDelegate alloc] initWithCompletion:^(MEGARequest *request) {
+                    [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
+                }];
+                
+                [[MEGASdkManager sharedMEGASdk] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:getPreviewRequestDelegate];
             }
         } else {
             NSString *offlineImagePath  = [[Helper pathForOffline] stringByAppendingPathComponent:[[MEGASdkManager sharedMEGASdk] escapeFsIncompatible:[self.node name]]];
@@ -159,13 +167,6 @@
 }
 
 - (void)cancelAnyLoading {
-}
-
-#pragma mark - MEGARequestDelegate
-
-- (void)onRequestFinish:(MEGASdk *)api request:(MEGARequest *)request error:(MEGAError *)error{
-    [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
-    
 }
 
 #pragma mark - MEGATransferDelegate
