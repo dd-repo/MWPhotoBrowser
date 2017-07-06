@@ -260,7 +260,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     }
 
     // Toolbar items
-    BOOL hasItems = NO;
+    BOOL hasItems = YES;
     UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
     fixedSpace.width = 32; // To balance action button
     UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
@@ -268,7 +268,6 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
     // Left button - Grid
     if (_enableGrid) {
-        hasItems = YES;
         [items addObject:[[UIBarButtonItem alloc] initWithImage:[UIImage imageForResourcePath:@"UIBarButtonItemGrid" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] style:UIBarButtonItemStylePlain target:self action:@selector(showGridAnimated)]];
     } else {
         [items addObject:fixedSpace];
