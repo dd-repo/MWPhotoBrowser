@@ -230,7 +230,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     } else {
         if (self.displayMode == DisplayModeRubbishBin) {
             _deleteButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"remove"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteButtonPressed:)];
-        } else {
+        } else if (self.displayMode == DisplayModeCloudDrive || self.displayMode == DisplayModeSharedItem) {
             MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
             if (level >= MEGAShareTypeAccessFull) {
                 _deleteButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"rubbishBin"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteButtonPressed:)];
