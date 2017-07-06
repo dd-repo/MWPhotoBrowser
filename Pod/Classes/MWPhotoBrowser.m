@@ -88,6 +88,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     _currentGridContentOffset = CGPointMake(0, CGFLOAT_MAX);
     _didSavePreviousStateOfNavBar = NO;
     self.automaticallyAdjustsScrollViewInsets = NO;
+    _enableMoveToRubbishBin = YES;
     
     // Listen for MWPhoto notifications
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -232,7 +233,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
             _deleteButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"remove"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteButtonPressed:)];
         } else if (self.displayMode == DisplayModeCloudDrive || self.displayMode == DisplayModeSharedItem) {
             MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
-            if (level >= MEGAShareTypeAccessFull) {
+            if (level >= MEGAShareTypeAccessFull && _enableMoveToRubbishBin) {
                 _deleteButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"rubbishBin"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteButtonPressed:)];
             }
         }

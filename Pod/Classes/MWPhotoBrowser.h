@@ -47,6 +47,7 @@
 @property (nonatomic) NSUInteger delayToHideElements;
 @property (nonatomic, readonly) NSUInteger currentIndex;
 @property (nonatomic) DisplayMode displayMode;
+@property (nonatomic) BOOL enableMoveToRubbishBin;
 
 // Customise image selection icons as they are the only icons with a colour tint
 // Icon should be located in the app's main bundle
