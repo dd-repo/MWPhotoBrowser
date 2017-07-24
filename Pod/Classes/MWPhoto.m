@@ -12,6 +12,8 @@
 #import "MEGASdkManager.h"
 #import "MEGAStore.h"
 #import "MEGAGetPreviewRequestDelegate.h"
+#import "NSFileManager+MNZCategory.h"
+#import "MEGAGetThumbnailRequestDelegate.h"
 
 @interface MWPhoto () <MEGATransferDelegate> {
     BOOL _loadingInProgress;
@@ -100,32 +102,33 @@
 - (void)performLoadUnderlyingImageAndNotify {
     if (self.isGridMode) {
         if([self.node hasPreview]) {
+            MEGAGetThumbnailRequestDelegate *getThumbnailRequestDelegate = [[MEGAGetThumbnailRequestDelegate alloc] initWithCompletion:^(MEGARequest *request) {
+                [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
+            }];
             if (self.isFromFolderLink) {
-                [[MEGASdkManager sharedMEGASdkFolder] getThumbnailNode:self.node destinationFilePath:self.imagePath delegate:self];
+                [[MEGASdkManager sharedMEGASdkFolder] getThumbnailNode:self.node destinationFilePath:self.imagePath delegate:getThumbnailRequestDelegate];
             } else {
-                [[MEGASdkManager sharedMEGASdk] getThumbnailNode:self.node destinationFilePath:self.imagePath delegate:self];
+                [[MEGASdkManager sharedMEGASdk] getThumbnailNode:self.node destinationFilePath:self.imagePath delegate:getThumbnailRequestDelegate];
             }
         }
     } else {
         if([self.node hasPreview]) {
+            MEGAGetPreviewRequestDelegate *getPreviewRequestDelegate = [[MEGAGetPreviewRequestDelegate alloc] initWithCompletion:^(MEGARequest *request) {
+                [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
+            }];
             if (self.isFromFolderLink) {
-                MEGAGetPreviewRequestDelegate *getPreviewRequestDelegate = [[MEGAGetPreviewRequestDelegate alloc] initWithCompletion:^(MEGARequest *request) {
-                    [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
-                }];
                 [[MEGASdkManager sharedMEGASdk] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:getPreviewRequestDelegate];
             } else {
-                MEGAGetPreviewRequestDelegate *getPreviewRequestDelegate = [[MEGAGetPreviewRequestDelegate alloc] initWithCompletion:^(MEGARequest *request) {
-                    [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
-                }];
-                
                 [[MEGASdkManager sharedMEGASdk] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:getPreviewRequestDelegate];
             }
         } else {
-            NSString *offlineImagePath  = [[Helper pathForOffline] stringByAppendingPathComponent:[[MEGASdkManager sharedMEGASdk] escapeFsIncompatible:[self.node name]]];
+            NSString *offlineImagePath = [[NSFileManager defaultManager] downloadsDirectory];
+            offlineImagePath = [offlineImagePath stringByReplacingOccurrencesOfString:[NSHomeDirectory() stringByAppendingString:@"/"] withString:@""];
+            offlineImagePath = [offlineImagePath stringByAppendingPathComponent:[[MEGASdkManager sharedMEGASdk] escapeFsIncompatible:[self.node name]]];
             if (self.isFromFolderLink) {
-                [[MEGASdkManager sharedMEGASdkFolder] startDownloadNode:self.node localPath:offlineImagePath delegate:self];
+                [[MEGASdkManager sharedMEGASdkFolder] startDownloadNode:self.node localPath:offlineImagePath appData:@"generate_fa" delegate:self];
             } else {
-                [[MEGASdkManager sharedMEGASdk] startDownloadNode:self.node localPath:offlineImagePath delegate:self];
+                [[MEGASdkManager sharedMEGASdk] startDownloadNode:self.node localPath:offlineImagePath appData:@"generate_fa" delegate:self];
             }
         }
     }
@@ -182,11 +185,9 @@
     
     [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
     
-    [[NSFileManager defaultManager] removeItemAtPath:[transfer path] error:nil];
-    
-    MOOfflineNode *offlineNode = [[MEGAStore shareInstance] fetchOfflineNodeWithPath:[Helper pathRelativeToOfflineDirectory:transfer.path]];
-    if (offlineNode) {
-        [[MEGAStore shareInstance] removeOfflineNode:offlineNode];
+    NSError *e;
+    if (![[NSFileManager defaultManager] removeItemAtPath:[NSHomeDirectory() stringByAppendingPathComponent:[transfer path]] error:&e]) {
+        MEGALogError(@"Remove item at path failed with error: %@", e);
     }
 }
 
