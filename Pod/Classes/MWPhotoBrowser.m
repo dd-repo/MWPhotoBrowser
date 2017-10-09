@@ -143,6 +143,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 - (void)viewDidLoad {
     // Customize back button
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"backArrow"] style:UIBarButtonItemStylePlain target:self action:@selector(popViewController)];
+    if (@available(iOS 11.0, *)) {
+        self.navigationItem.leftBarButtonItem.tintColor = [UIColor whiteColor];
+    }
     // Validate grid settings
     if (_startOnGrid) _enableGrid = YES;
     if (!_enableGrid) _startOnGrid = NO;
@@ -178,16 +181,28 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
         UIImage *previousButtonImage = [UIImage imageForResourcePath:[NSString stringWithFormat:arrowPathFormat, @"Left"] ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]];
         UIImage *nextButtonImage = [UIImage imageForResourcePath:[NSString stringWithFormat:arrowPathFormat, @"Right"] ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]];
         _previousButton = [[UIBarButtonItem alloc] initWithImage:previousButtonImage style:UIBarButtonItemStylePlain target:self action:@selector(gotoPreviousPage)];
+        if (@available(iOS 11.0, *)) {
+            _previousButton.tintColor = [UIColor whiteColor];
+        }
         _nextButton = [[UIBarButtonItem alloc] initWithImage:nextButtonImage style:UIBarButtonItemStylePlain target:self action:@selector(gotoNextPage)];
+        if (@available(iOS 11.0, *)) {
+            _nextButton.tintColor = [UIColor whiteColor];
+        }
     }
     if (self.displayActionButton) {
         MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
         if (level == MEGANodeAccessLevelAccessUnknown) {
             if ([[[UIDevice currentDevice] systemVersion] floatValue] > 9.0) {
                 _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"offlineIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(downloadButtonPressed:)];
+                if (@available(iOS 11.0, *)) {
+                    _actionButton.tintColor = [UIColor whiteColor];
+                }
             }
         } else {
             _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
+            if (@available(iOS 11.0, *)) {
+                _actionButton.tintColor = [UIColor whiteColor];
+            }
         }
     }
     
@@ -220,6 +235,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     if ([self.navigationController.viewControllers objectAtIndex:0] == self) {
         // We're first on stack so show done button
         _doneButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", nil) style:UIBarButtonItemStylePlain target:self action:@selector(doneButtonPressed:)];
+        if (@available(iOS 11.0, *)) {
+            _doneButton.tintColor = [UIColor whiteColor];
+        }
         // Set appearance
         [_doneButton setBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
         [_doneButton setBackgroundImage:nil forState:UIControlStateNormal barMetrics:UIBarMetricsCompact];
@@ -231,10 +249,16 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     } else {
         if (self.displayMode == DisplayModeRubbishBin) {
             _deleteButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"remove"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteButtonPressed:)];
+            if (@available(iOS 11.0, *)) {
+                _deleteButton.tintColor = [UIColor whiteColor];
+            }
         } else if (self.displayMode == DisplayModeCloudDrive || self.displayMode == DisplayModeSharedItem) {
             MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
             if (level >= MEGAShareTypeAccessFull && _enableMoveToRubbishBin) {
                 _deleteButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"rubbishBin"] style:UIBarButtonItemStylePlain target:self action:@selector(deleteButtonPressed:)];
+                if (@available(iOS 11.0, *)) {
+                    _deleteButton.tintColor = [UIColor whiteColor];
+                }
             }
         }
         // Set appearance
@@ -269,7 +293,11 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 
     // Left button - Grid
     if (_enableGrid) {
-        [items addObject:[[UIBarButtonItem alloc] initWithImage:[UIImage imageForResourcePath:@"UIBarButtonItemGrid" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] style:UIBarButtonItemStylePlain target:self action:@selector(showGridAnimated)]];
+        UIBarButtonItem *gridBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageForResourcePath:@"UIBarButtonItemGrid" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] style:UIBarButtonItemStylePlain target:self action:@selector(showGridAnimated)];
+        if (@available(iOS 11.0, *)) {
+            gridBarButtonItem.tintColor = [UIColor whiteColor];
+        }
+        [items addObject:gridBarButtonItem];
     } else {
         [items addObject:fixedSpace];
     }
@@ -1147,7 +1175,11 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
         _actionButton.tintColor = [UIColor clearColor]; // Tint to hide button
     } else {
         _actionButton.enabled = YES;
-        _actionButton.tintColor = nil;
+        if (@available(iOS 11.0, *)) {
+            _actionButton.tintColor = [UIColor whiteColor];
+        } else {
+            _actionButton.tintColor = nil;
+        }
     }
 	
 }
