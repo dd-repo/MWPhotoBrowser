@@ -14,6 +14,8 @@
 
 #import "SaveToCameraRollActivity.h"
 #import "MEGAActivityItemProvider.h"
+#import "MEGAMoveRequestDelegate.h"
+#import "MEGARemoveRequestDelegate.h"
 #import "NSFileManager+MNZCategory.h"
 
 #import "SVProgressHUD.h"
@@ -1724,34 +1726,23 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex == 0) {
         MWPhoto *photo = [_fixedPhotosArray objectAtIndex:_currentPageIndex];
-        if (self.displayMode == DisplayModeRubbishBin) {
-            [[MEGASdkManager sharedMEGASdk] removeNode:photo.node delegate:self];
-        } else {
-            [[MEGASdkManager sharedMEGASdk] moveNode:photo.node newParent:[[MEGASdkManager sharedMEGASdk] rubbishNode] delegate:self];
-        }
-    }
-}
-
-#pragma mark - MEGARequestDelegate
-
-- (void)onRequestFinish:(MEGASdk *)api request:(MEGARequest *)request error:(MEGAError *)error {
-    if (error.type) {
-        return;
-    }
-    
-    switch (request.type) {
-        case MEGARequestTypeMove:
-        case MEGARequestTypeRemove:
+        
+        void (^completion)(void) = ^{
             [_fixedPhotosArray removeObjectAtIndex:_currentPageIndex];
             if (_fixedPhotosArray.count == 0) {
                 [self.navigationController popViewControllerAnimated:YES];
             } else {
                 [self reloadData];
             }
-            break;
-            
-        default:
-            break;
+        };
+        
+        if (self.displayMode == DisplayModeRubbishBin) {
+            MEGARemoveRequestDelegate *removeRequestDelegate = [[MEGARemoveRequestDelegate alloc] initWithMode:DisplayModeRubbishBin numberOfFilesAndFolders:@[[NSNumber numberWithUnsignedInteger:1], [NSNumber numberWithUnsignedInteger:0]] completion:completion];
+            [[MEGASdkManager sharedMEGASdk] removeNode:photo.node delegate:removeRequestDelegate];
+        } else {
+            MEGAMoveRequestDelegate *moveRequestDelegate = [[MEGAMoveRequestDelegate alloc] initToMoveToTheRubbishBinWithNumberOfFilesAndFolders:@[[NSNumber numberWithUnsignedInteger:1], [NSNumber numberWithUnsignedInteger:0]] completion:completion];
+            [[MEGASdkManager sharedMEGASdk] moveNode:photo.node newParent:[[MEGASdkManager sharedMEGASdk] rubbishNode] delegate:moveRequestDelegate];
+        }
     }
 }
 
