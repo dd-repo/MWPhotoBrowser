@@ -192,7 +192,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     if (self.displayActionButton) {
         MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
         if (level == MEGANodeAccessLevelAccessUnknown) {
-            if ([[[UIDevice currentDevice] systemVersion] floatValue] > 9.0) {
+            if (@available(iOS 9.0, *)) {
                 _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"offlineIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(downloadButtonPressed:)];
                 if (@available(iOS 11.0, *)) {
                     _actionButton.tintColor = [UIColor whiteColor];
@@ -1660,16 +1660,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         [actionSheet showFromBarButtonItem:_deleteButton animated:YES];
     } else {
-        if (([[[UIDevice currentDevice] systemVersion] compare:@"8.0" options:NSNumericSearch] == NSOrderedAscending)) {
-            UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
-            if ([window.subviews containsObject:self.view]) {
-                [actionSheet showInView:self.view];
-            } else {
-                [actionSheet showInView:window];
-            }
-        } else {
-            [actionSheet showFromTabBar:self.tabBarController.tabBar];
-        }
+        [actionSheet showFromTabBar:self.tabBarController.tabBar];
     }
 }
 
