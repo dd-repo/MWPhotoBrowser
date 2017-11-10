@@ -1737,10 +1737,10 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
         };
         
         if (self.displayMode == DisplayModeRubbishBin) {
-            MEGARemoveRequestDelegate *removeRequestDelegate = [[MEGARemoveRequestDelegate alloc] initWithMode:DisplayModeRubbishBin numberOfFilesAndFolders:@[[NSNumber numberWithUnsignedInteger:1], [NSNumber numberWithUnsignedInteger:0]] completion:completion];
+            MEGARemoveRequestDelegate *removeRequestDelegate = [[MEGARemoveRequestDelegate alloc] initWithMode:DisplayModeRubbishBin files:1 folders:0 completion:completion];
             [[MEGASdkManager sharedMEGASdk] removeNode:photo.node delegate:removeRequestDelegate];
         } else {
-            MEGAMoveRequestDelegate *moveRequestDelegate = [[MEGAMoveRequestDelegate alloc] initToMoveToTheRubbishBinWithNumberOfFilesAndFolders:@[[NSNumber numberWithUnsignedInteger:1], [NSNumber numberWithUnsignedInteger:0]] completion:completion];
+            MEGAMoveRequestDelegate *moveRequestDelegate = [[MEGAMoveRequestDelegate alloc] initToMoveToTheRubbishBinWithFiles:1 folders:0 completion:completion];
             [[MEGASdkManager sharedMEGASdk] moveNode:photo.node newParent:[[MEGASdkManager sharedMEGASdk] rubbishNode] delegate:moveRequestDelegate];
         }
     }
