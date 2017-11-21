@@ -71,6 +71,11 @@
                                                      name:MWPHOTO_LOADING_DID_END_NOTIFICATION
                                                    object:nil];
         
+        if (@available(iOS 11.0, *)) {
+            _imageView.accessibilityIgnoresInvertColors = YES;
+            _videoIndicator.accessibilityIgnoresInvertColors = YES;
+            _loadingIndicator.accessibilityIgnoresInvertColors = YES;
+        }
     }
     return self;
 }
