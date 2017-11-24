@@ -221,6 +221,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 	// Super
     [super viewDidLoad];
 	
+    if (@available(iOS 11.0, *)) {
+        self.view.accessibilityIgnoresInvertColors = YES;
+    }
 }
 
 - (void)performLayout {
