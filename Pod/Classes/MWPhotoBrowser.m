@@ -194,11 +194,9 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     if (self.displayActionButton) {
         MEGAShareType level = [[MEGASdkManager sharedMEGASdk] accessLevelForNode:[[_fixedPhotosArray objectAtIndex:_currentPageIndex] node]];
         if (level == MEGANodeAccessLevelAccessUnknown) {
-            if (@available(iOS 9.0, *)) {
-                _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"offlineIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(downloadButtonPressed:)];
-                if (@available(iOS 11.0, *)) {
-                    _actionButton.tintColor = [UIColor whiteColor];
-                }
+            _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"offlineIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(downloadButtonPressed:)];
+            if (@available(iOS 11.0, *)) {
+                _actionButton.tintColor = [UIColor whiteColor];
             }
         } else {
             _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonPressed:)];
