@@ -101,7 +101,7 @@
 // Set the underlyingImage
 - (void)performLoadUnderlyingImageAndNotify {
     if (self.isGridMode) {
-        if([self.node hasPreview]) {
+        if([self.node hasThumbnail]) {
             MEGAGetThumbnailRequestDelegate *getThumbnailRequestDelegate = [[MEGAGetThumbnailRequestDelegate alloc] initWithCompletion:^(MEGARequest *request) {
                 [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
             }];
@@ -117,7 +117,7 @@
                 [self performSelector:@selector(imageLoadingComplete) withObject:nil afterDelay:0];
             }];
             if (self.isFromFolderLink) {
-                [[MEGASdkManager sharedMEGASdk] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:getPreviewRequestDelegate];
+                [[MEGASdkManager sharedMEGASdkFolder] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:getPreviewRequestDelegate];
             } else {
                 [[MEGASdkManager sharedMEGASdk] getPreviewNode:self.node destinationFilePath:self.imagePath delegate:getPreviewRequestDelegate];
             }
